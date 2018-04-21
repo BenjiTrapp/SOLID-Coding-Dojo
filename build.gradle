@@ -35,6 +35,9 @@ task wrapper(type: Wrapper) {
 def choice = 'master'
 
 task ask(type: Task) {
+    group = 'SOLID lessons'
+    description = 'Choose your destiny among all available SOLID lessons'
+
     doLast {
         def console = System.console()
         if (console) {
@@ -59,6 +62,9 @@ task ask(type: Task) {
 }
 
 task startLesson(type: Task) {
+    group = 'SOLID lessons'
+    description = 'Starts a lesson that was pre configured by the ask task'
+
     doFirst {ask.execute()}
     doLast {
         startLesson.dependsOn(ask)
@@ -71,6 +77,9 @@ task startLesson(type: Task) {
 }
 
 task getSolution(type: Task) {
+    group = 'SOLID lessons'
+    description = 'Retrieves the solution for your current Lesson'
+
     doLast {
         def shouldProceed = System.console()
                                   ?.readLine('> All local changes may be deleted. Sure that you want to proceed? (y/n)')
