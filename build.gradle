@@ -35,40 +35,63 @@ task wrapper(type: Wrapper) {
 def choice = 'master'
 
 task ask(type: Task) {
-    def console = System.console()
-    if (console) {
-        println """
-                Welcome to the SOLID Coding Dojo!
-                ======================================
-                Available lessons
-                
-                S: Single responsibility principle
-                O: Open/Close principle
-                L: Liskov substitution principle
-                I: Interface segregation principle
-                D: Dependency inversion principle
-                """
-        choice = console.readLine('> Choose your destiny! : ').toLowerCase()
-        assert choice.matches("^[solid]\$"), "Only the chars S,O,L,I,D are allowed!"
-    } else {
-        logger.error "ERROR: Can't get a valid console"
-        ask.execute()
+    doLast {
+        def console = System.console()
+        if (console) {
+            println """
+                    Welcome to the SOLID Coding Dojo!
+                    ======================================
+                    Available lessons
+                    
+                    S: Single responsibility principle
+                    O: Open/Close principle
+                    L: Liskov substitution principle
+                    I: Interface segregation principle
+                    D: Dependency inversion principle
+                    """
+            choice = console.readLine('> Choose your destiny! : ').toLowerCase()
+            assert choice.matches("^[solid]\$"), "Only the chars S,O,L,I,D are allowed!"
+        } else {
+            logger.error "ERROR: Can't get a valid console"
+            ask.execute()
+        }
     }
 }
 
 task startLesson(type: Task) {
-    startLesson.dependsOn(ask)
+    doFirst {ask.execute()}
+    doLast {
+        startLesson.dependsOn(ask)
 
-    grgit.checkout {
-        branch = choice
-        createBranch = false
+        grgit.checkout {
+            branch = choice
+            createBranch = false
+        }
     }
 }
 
 task getSolution(type: Task) {
-    def currentBranch = grgit.branch.current().name
+    doLast {
+        def shouldProceed = System.console()
+                                  ?.readLine('> All local changes may be deleted. Sure that you want to proceed? (y/n)')
+                                  ?.toLowerCase() ?: 'n'
 
-    println currentBranch
+        if(shouldProceed == 'y'){
+            def currentBranch = grgit.branch.current().name?.toLowerCase()
+
+            if (currentBranch.contains("-solution")) {
+                throw new GradleException("You're already in a solution branch. Use an ask task to switch the lesson")
+            }
+
+            if (!currentBranch.matches("^[solid]\$")){
+                throw new GradleException("$currentBranch is an unknon task")
+            }
+
+            grgit.checkout {
+                branch = currentBranch + "-solution"
+            }
+        }
+    }
 }
 
 dependencies {
