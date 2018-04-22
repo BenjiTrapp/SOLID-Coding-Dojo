@@ -1,12 +1,10 @@
 apply plugin: 'java'
 apply plugin: 'maven'
-apply plugin: "groovy"
+apply plugin: 'groovy'
 apply plugin: 'idea'
 
 group = 'de.benjitrapp.gpssimulator'
 version = '1.0.0-SNAPSHOT'
-
-description = """"""
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -14,7 +12,7 @@ targetCompatibility = 1.8
 repositories {
     jcenter()
     mavenCentral()
-    maven { url "http://repo.maven.apache.org/maven2" }
+    maven { url 'http://repo.maven.apache.org/maven2' }
 }
 
 idea {
@@ -27,6 +25,11 @@ idea {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.4.1'
+}
+
+sourceSets {
+    main { java { srcDir 'src/' }}
+    test { java { srcDir 'tests/' }}
 }
 
 def choice
@@ -46,9 +49,9 @@ task ask(type: Task) {
                 D: Dependency inversion principle
                 """
         choice = console.readLine('> Choose your destiny! : ')
-        assert choice.matches("^[SOLIDsolid]\$"), "Only the chars S,O,L,I,D are allowed!"
+        assert choice.matches("^[SOLIDsolid]\$"), 'Only the chars S,O,L,I,D are allowed!'
     } else {
-        logger.error "ERROR: Can't get a valid console"
+        logger.error 'ERROR: Can\'t get a valid console'
     }
 }
 
@@ -57,24 +60,30 @@ task startLesson(type: Task) {
 }
 
 task deleteSrcDirRecusivly(type: Delete) {
-    delete "tmp"
+    delete 'tmp'
 }
 
 dependencies {
+    compile (
+            'org.slf4j:slf4j-api:1.7.25',
+            'org.slf4j:slf4j-log4j12:1.7.25',
+            'log4j:log4j:1.2.17',
+            'org.codehaus.groovy:groovy-all:2.4.10'
+    )
+
     testCompile('com.athaydes:spock-reports:1.3.1') {
         transitive = false // this avoids affecting your version of Groovy/Spock
     }
 
-    // mandatory dependencies for using Spock
-    compile "org.codehaus.groovy:groovy-all:2.4.10"
 
     testCompile(
-            "org.spockframework:spock-core:1.1-groovy-2.4",
-            "org.hamcrest:hamcrest-all:1.3'"
+            'junit:junit:4.12',
+            'org.spockframework:spock-core:1.1-groovy-2.4',
+            'org.hamcrest:hamcrest-all:1.3'
     )
 
     testRuntime(
-            "net.bytebuddy:byte-buddy:1.6.5",
-            "org.objenesis:objenesis:2.5.1"
+            'net.bytebuddy:byte-buddy:1.6.5',
+            'org.objenesis:objenesis:2.5.1'
     )
 }
