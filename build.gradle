@@ -1,15 +1,10 @@
-plugins {
-    id 'java'
-    id 'maven'
-    id "groovy"
-    id 'idea'
-    id 'org.ajoberstar.grgit' version '2.2.0-rc.1'
-}
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'groovy'
+apply plugin: 'idea'
 
 group = 'de.benjitrapp.gpssimulator'
 version = '1.0.0-SNAPSHOT'
-
-description = """"""
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -17,7 +12,7 @@ targetCompatibility = 1.8
 repositories {
     jcenter()
     mavenCentral()
-    maven { url "http://repo.maven.apache.org/maven2" }
+    maven { url 'http://repo.maven.apache.org/maven2' }
 }
 
 idea {
@@ -32,91 +27,63 @@ task wrapper(type: Wrapper) {
     gradleVersion = '3.4.1'
 }
 
-def choice = 'master'
+sourceSets {
+    main { java { srcDir 'src/' }}
+    test { java { srcDir 'tests/' }}
+}
+
+def choice
 
 task ask(type: Task) {
-    group = 'SOLID lessons'
-    description = 'Choose your destiny among all available SOLID lessons'
-
-    doLast {
-        def console = System.console()
-        if (console) {
-            println """
-                    Welcome to the SOLID Coding Dojo!
-                    ======================================
-                    Available lessons
-                    
-                    S: Single responsibility principle
-                    O: Open/Close principle
-                    L: Liskov substitution principle
-                    I: Interface segregation principle
-                    D: Dependency inversion principle
-                    """
-            choice = console.readLine('> Choose your destiny! : ').toLowerCase()
-            assert choice.matches("^[solid]\$"), "Only the chars S,O,L,I,D are allowed!"
-        } else {
-            logger.error "ERROR: Can't get a valid console"
-            ask.execute()
-        }
+    def console = System.console()
+    if (console) {
+        println """
+                Welcome to the SOLID Coding Dojo!
+                ======================================
+                Available lessons
+                
+                S: Single responsibility principle
+                O: Open/Close principle
+                L: Liskov substitution principle
+                I: Interface segregation principle
+                D: Dependency inversion principle
+                """
+        choice = console.readLine('> Choose your destiny! : ')
+        assert choice.matches("^[SOLIDsolid]\$"), 'Only the chars S,O,L,I,D are allowed!'
+    } else {
+        logger.error 'ERROR: Can\'t get a valid console'
     }
 }
+
 
 task startLesson(type: Task) {
-    group = 'SOLID lessons'
-    description = 'Starts a lesson that was pre configured by the ask task'
-
-    doFirst {ask.execute()}
-    doLast {
-        startLesson.dependsOn(ask)
-
-        grgit.checkout {
-            branch = choice
-            createBranch = false
-        }
-    }
 }
 
-task getSolution(type: Task) {
-    group = 'SOLID lessons'
-    description = 'Retrieves the solution for your current Lesson'
-
-    doLast {
-        def shouldProceed = System.console()
-                                  ?.readLine('> All local changes may be deleted. Sure that you want to proceed? (y/n)')
-                                  ?.toLowerCase() ?: 'n'
-
-        if(shouldProceed == 'y'){
-            def currentBranch = grgit.branch.current().name?.toLowerCase()
-
-            if (currentBranch.contains("-solution")) {
-                throw new GradleException("You're already in a solution branch. Use an ask task to switch the lesson")
-            }
-
-            if (!currentBranch.matches("^[solid]\$")){
-                throw new GradleException("$currentBranch is an unknon task")
-            }
-
-            grgit.checkout {
-                branch = currentBranch + "-solution"
-            }
-        }
-    }
+task deleteSrcDirRecusivly(type: Delete) {
+    delete 'tmp'
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy-all:2.4.10"
+    compile (
+            'org.slf4j:slf4j-api:1.7.25',
+            'org.slf4j:slf4j-log4j12:1.7.25',
+            'log4j:log4j:1.2.17',
+            'org.codehaus.groovy:groovy-all:2.4.10'
+    )
 
     testCompile('com.athaydes:spock-reports:1.3.1') {
         transitive = false // this avoids affecting your version of Groovy/Spock
     }
 
+
     testCompile(
-            "org.spockframework:spock-core:1.1-groovy-2.4",
-            //"org.hamcrest:hamcrest-all:1.3'"
+            'junit:junit:4.12',
+            'org.spockframework:spock-core:1.1-groovy-2.4',
+            'org.hamcrest:hamcrest-all:1.3'
     )
 
     testRuntime(
-            "net.bytebuddy:byte-buddy:1.6.5",
-            "org.objenesis:objenesis:2.5.1"
+            'net.bytebuddy:byte-buddy:1.6.5',
+            'org.objenesis:objenesis:2.5.1'
     )
 }
