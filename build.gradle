@@ -43,7 +43,7 @@ task ask(type: Task) {
     description = 'Choose your destiny among all available SOLID lessons'
 
     doLast {
-        def console = System.console()
+        def console = System.in
         if (console) {
             println """
                     Welcome to the SOLID Coding Dojo!
@@ -56,7 +56,7 @@ task ask(type: Task) {
                     I: Interface segregation principle
                     D: Dependency inversion principle
                     """
-            choice = console.readLine('> Choose your destiny! : ').toLowerCase()
+            choice = console.readLines('> Choose your destiny! : ').toLowerCase()
             assert choice.matches("^[solid]\$"), "Only the chars S,O,L,I,D are allowed!"
         } else {
             logger.error "ERROR: Can't get a valid console"
@@ -85,8 +85,8 @@ task getSolution(type: Task) {
     description = 'Retrieves the solution for your current Lesson'
 
     doLast {
-        def shouldProceed = System.console()
-                ?.readLine('> All local changes may be deleted. Sure that you want to proceed? (y/n)')
+        def shouldProceed = System.in
+                ?.readLines('> All local changes may be deleted. Sure that you want to proceed? (y/n)')
                 ?.toLowerCase() ?: 'n'
 
         if(shouldProceed == 'y'){
