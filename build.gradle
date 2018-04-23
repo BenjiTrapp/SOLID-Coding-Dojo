@@ -1,9 +1,12 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'groovy'
-apply plugin: 'idea'
+plugins {
+    id 'java'
+    id 'maven'
+    id "groovy"
+    id 'idea'
+    id 'org.ajoberstar.grgit' version '2.2.0-rc.1'
+}
 
-group = 'de.benjitrapp.gpssimulator'
+group = 'de.benjitrapp.solid-coding-dojo'
 version = '1.0.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
@@ -12,7 +15,7 @@ targetCompatibility = 1.8
 repositories {
     jcenter()
     mavenCentral()
-    maven { url 'http://repo.maven.apache.org/maven2' }
+    maven { url "http://repo.maven.apache.org/maven2" }
 }
 
 idea {
@@ -23,44 +26,87 @@ idea {
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.4.1'
-}
-
 sourceSets {
     main { java { srcDir 'src/' }}
     test { java { srcDir 'tests/' }}
 }
 
-def choice
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.4.1'
+}
+
+def choice = 'master'
 
 task ask(type: Task) {
-    def console = System.console()
-    if (console) {
-        println """
-                Welcome to the SOLID Coding Dojo!
-                ======================================
-                Available lessons
-                
-                S: Single responsibility principle
-                O: Open/Close principle
-                L: Liskov substitution principle
-                I: Interface segregation principle
-                D: Dependency inversion principle
-                """
-        choice = console.readLine('> Choose your destiny! : ')
-        assert choice.matches("^[SOLIDsolid]\$"), 'Only the chars S,O,L,I,D are allowed!'
-    } else {
-        logger.error 'ERROR: Can\'t get a valid console'
+    group = 'SOLID lessons'
+    description = 'Choose your destiny among all available SOLID lessons'
+
+    doLast {
+        def console = System.console()
+        if (console) {
+            println """
+                    Welcome to the SOLID Coding Dojo!
+                    ======================================
+                    Available lessons
+                    
+                    S: Single responsibility principle
+                    O: Open/Close principle
+                    L: Liskov substitution principle
+                    I: Interface segregation principle
+                    D: Dependency inversion principle
+                    """
+            choice = console.readLine('> Choose your destiny! : ').toLowerCase()
+            assert choice.matches("^[solid]\$"), "Only the chars S,O,L,I,D are allowed!"
+        } else {
+            logger.error "ERROR: Can't get a valid console"
+            ask.execute()
+        }
     }
 }
 
+task startLesson(type: Task, dependsOn: 'ask') {
+    group = 'SOLID lessons'
+    description = 'Starts a lesson that was pre configured by the ask task'
 
-task startLesson(type: Task) {
+    doFirst {ask.execute()}
+    doLast {
+        startLesson.dependsOn(ask)
+
+        grgit.checkout {
+            branch = choice
+            createBranch = false
+        }
+    }
 }
 
-task deleteSrcDirRecusivly(type: Delete) {
-    delete 'tmp'
+task getSolution(type: Task) {
+    group = 'SOLID lessons'
+    description = 'Retrieves the solution for your current Lesson'
+
+    doLast {
+        def shouldProceed = System.console()
+                ?.readLine('> All local changes may be deleted. Sure that you want to proceed? (y/n)')
+                ?.toLowerCase() ?: 'n'
+
+        if(shouldProceed == 'y'){
+            def currentBranch = grgit.branch.current().name?.toLowerCase()
+
+            if (currentBranch.contains("-solution")) {
+                throw new GradleException("You're already in a solution branch. Use an ask task to switch the lesson")
+            }
+
+            if (!currentBranch.matches("^[solid]\$")){
+                throw new GradleException("$currentBranch is an unknon task")
+            }
+
+            grgit.checkout {
+                branch = currentBranch + "-solution"
+            }
+        } else {
+            println "Skipped as you wished. No change of your local files were performed!"
+        }
+    }
 }
 
 dependencies {
@@ -87,3 +133,4 @@ dependencies {
             'org.objenesis:objenesis:2.5.1'
     )
 }
+
