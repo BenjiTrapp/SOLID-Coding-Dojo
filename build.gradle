@@ -26,6 +26,12 @@ idea {
     }
 }
 
+sourceSets {
+    main { java { srcDir 'src/' }}
+    test { java { srcDir 'tests/' }}
+}
+
+
 task wrapper(type: Wrapper) {
     gradleVersion = '3.4.1'
 }
