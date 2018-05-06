@@ -1,4 +1,4 @@
-# SOLID design principles
+![](https://team-coder.com/wp-content/uploads/SOLID.png)
 
 This repository contains examples of the five SOLID design principles of object-oriented programming. The examples are 
 written in Java/Groovy. Each example has a "good" and a "bad" example to demonstrate adherence to and violation of the 
@@ -26,3 +26,6 @@ At the end you still can compare your solution with the good example :-)
 ### Best practice
 
 Each lesson and example comes with at least one Spock-test. Feel free to implement your own tests in what ever language or framework you feel well with. To have a better experience and learning effect, try to implement your solution by using (A)TDD and stick to `implement the test first`. 
+
+
+![](http://lesseverything.com/images/blog/easybaby.jpg)
