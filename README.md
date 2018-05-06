@@ -16,3 +16,13 @@ At the end you still can compare your solution with the good example :-)
 * **I**nterface segregation principle: ``many client-specific interfaces are better than one general-purpose interface.``
 * **D**ependency inversion principle:
 
+### How can I start learning SOLID?
+
+1. Clone this repository and check out the master branch
+1. Run ``./gradlew startLesson`` or click on the Task when you use an IDE like Intellij
+1. Read the .md-file in the directory src/ carefully and start implementing.
+1. Curious about a "good" solution? Run the task ``./gradlew getSolution`` 
+
+### Best practice
+
+Each lesson and example comes with at least one Spock-test. Feel free to implement your own tests in what ever language or framework you feel well with. To have a better experience and learning effect, try to implement your solution by using (A)TDD and stick to `implement the test first`. 
