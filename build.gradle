@@ -1,7 +1,9 @@
+import groovy.swing.SwingBuilder
+
 plugins {
     id 'java'
     id 'maven'
-    id "groovy"
+    id 'groovy'
     id 'idea'
     id 'org.ajoberstar.grgit' version '2.2.0-rc.1'
 }
@@ -15,7 +17,7 @@ targetCompatibility = 1.8
 repositories {
     jcenter()
     mavenCentral()
-    maven { url "http://repo.maven.apache.org/maven2" }
+    maven { url 'http://repo.maven.apache.org/maven2' }
 }
 
 idea {
@@ -36,16 +38,48 @@ task wrapper(type: Wrapper) {
     gradleVersion = '3.4.1'
 }
 
-def choice = 'master'
+def choice = '' ?: 'master'
 
-task ask(type: Task) {
+task startLesson(type: Task) {
     group = 'SOLID lessons'
     description = 'Choose your destiny among all available SOLID lessons'
 
     doLast {
-        def console = System.in
-        if (console) {
-            println """
+        def console = System.console()
+
+        if (console == null) {
+            new SwingBuilder().edt {
+                dialog( modal: true,
+                        title: '> SOLID CODING DOJO - Choose your destiny',
+                        alwaysOnTop: true,
+                        resizable: false,
+                        locationRelativeTo: null,
+                        pack: true,
+                        show: true
+                ) {
+                    vbox {
+                        label(text: '<html>Welcome to the SOLID Coding Dojo!<br>' +
+                                    '======================================<br>' +
+                                    'Available lessons<br>' +
+                                    '<br>' +
+                                    'S: Single responsibility principle<br>' +
+                                    'O: Open/Close principle<br>' +
+                                    'L: Liskov substitution principle<br>' +
+                                    'I: Interface segregation principle<br>' +
+                                    'D: Dependency inversion principle<br><br>' +
+                                    'Enter the Capital latter of the wanted session<br>' +
+                                    'to start learning:<br>' +
+                                '</html>')
+                        input = textField()
+                        button(defaultButton: true, text: 'Start Lesson', actionPerformed: {
+                            choice = input.text.toLowerCase() as String
+                            dispose()
+                        })
+                    }
+                }
+            }
+        } else {
+            println '''
                     Welcome to the SOLID Coding Dojo!
                     ======================================
                     Available lessons
@@ -55,23 +89,12 @@ task ask(type: Task) {
                     L: Liskov substitution principle
                     I: Interface segregation principle
                     D: Dependency inversion principle
-                    """
-            choice = console.readLines('> Choose your destiny! : ').toLowerCase()
-            assert choice.matches("^[solid]\$"), "Only the chars S,O,L,I,D are allowed!"
-        } else {
-            logger.error "ERROR: Can't get a valid console"
-            ask.execute()
+                    '''
+            choice = console.readLine('> Choose your destiny! : ').toLowerCase()
         }
-    }
-}
 
-task startLesson(type: Task, dependsOn: 'ask') {
-    group = 'SOLID lessons'
-    description = 'Starts a lesson that was pre configured by the ask task'
-
-    doFirst {ask.execute()}
-    doLast {
-        startLesson.dependsOn(ask)
+        assert choice.matches('^[solid]\$'), 'Only the chars S,O,L,I,D are allowed!'
+        assert grgit.branch.current().getName() != choice, 'Nothing to do - target and current branch are equal'
 
         grgit.checkout {
             branch = choice
@@ -85,27 +108,14 @@ task getSolution(type: Task) {
     description = 'Retrieves the solution for your current Lesson'
 
     doLast {
-        def shouldProceed = System.in
-                ?.readLines('> All local changes may be deleted. Sure that you want to proceed? (y/n)')
-                ?.toLowerCase() ?: 'n'
+            def currentBranch = grgit.branch.current().getName()
 
-        if(shouldProceed == 'y'){
-            def currentBranch = grgit.branch.current().name?.toLowerCase()
-
-            if (currentBranch.contains("-solution")) {
-                throw new GradleException("You're already in a solution branch. Use an ask task to switch the lesson")
-            }
-
-            if (!currentBranch.matches("^[solid]\$")){
-                throw new GradleException("$currentBranch is an unknon task")
-            }
+            assert !currentBranch.contains('-solution'), 'ERROR (DAU) You\'re already in a solution branch'
+            assert currentBranch.matches('^[solid]\$'), "ERROR (DAU): $currentBranch is an unknon branch"
 
             grgit.checkout {
-                branch = currentBranch + "-solution"
+                branch = "${currentBranch}-solution"
             }
-        } else {
-            println "Skipped as you wished. No change of your local files were performed!"
-        }
     }
 }
 
