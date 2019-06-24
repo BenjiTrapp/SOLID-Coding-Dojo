@@ -1,6 +1,6 @@
 package liskov_substitution.good;
 
-public class PenthouseSuite extends liskov_substitution.bad.PenthouseSuite {
+public class PenthouseSuite {
     int squareFootage;
     int numberOfBedrooms;
 
